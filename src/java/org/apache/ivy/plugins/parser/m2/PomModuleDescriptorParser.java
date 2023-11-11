@@ -17,6 +17,13 @@
  */
 package org.apache.ivy.plugins.parser.m2;
 
+import static org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC;
+import static org.apache.ivy.plugins.namespace.NameSpaceHelper.toSystem;
+import static org.apache.ivy.plugins.parser.m2.PomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
+import static org.apache.ivy.plugins.parser.m2.PomModuleDescriptorBuilder.extractPomProperties;
+import static org.apache.ivy.plugins.parser.m2.PomModuleDescriptorBuilder.getDependencyManagements;
+import static org.apache.ivy.plugins.parser.m2.PomModuleDescriptorBuilder.getPlugins;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,13 +65,6 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.Message;
 import org.xml.sax.SAXException;
 
-import static org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC;
-import static org.apache.ivy.plugins.namespace.NameSpaceHelper.toSystem;
-import static org.apache.ivy.plugins.parser.m2.PomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
-import static org.apache.ivy.plugins.parser.m2.PomModuleDescriptorBuilder.extractPomProperties;
-import static org.apache.ivy.plugins.parser.m2.PomModuleDescriptorBuilder.getDependencyManagements;
-import static org.apache.ivy.plugins.parser.m2.PomModuleDescriptorBuilder.getPlugins;
-
 /**
  * A parser for Maven 2 POM.
  * <p>
@@ -80,7 +80,8 @@ public final class PomModuleDescriptorParser implements ModuleDescriptorParser {
 
     private static final PomModuleDescriptorParser INSTANCE = new PomModuleDescriptorParser();
 
-    private static final String PARENT_MAP_KEY = PomModuleDescriptorParser.class.getName() + ".parentMap";
+    private static final String PARENT_MAP_KEY = PomModuleDescriptorParser.class.getName()
+            + ".parentMap";
 
     public static PomModuleDescriptorParser getInstance() {
         return INSTANCE;
@@ -185,15 +186,16 @@ public final class PomModuleDescriptorParser implements ModuleDescriptorParser {
                     parents.add(parentModRevID);
                 }
 
-                final ResolvedModuleRevision parentModule = parseOtherPom(ivySettings, parentModRevID, true);
+                final ResolvedModuleRevision parentModule = parseOtherPom(ivySettings,
+                    parentModRevID, true);
                 if (parentModule == null) {
                     throw new IOException("Impossible to load parent for " + res.getName()
                             + ". Parent=" + parentModRevID);
                 }
                 parentDescr = parentModule.getDescriptor();
                 if (parentDescr != null) {
-                    for (Map.Entry<String, String> prop
-                            : extractPomProperties(parentDescr.getExtraInfos()).entrySet()) {
+                    for (Map.Entry<String, String> prop : extractPomProperties(
+                        parentDescr.getExtraInfos()).entrySet()) {
                         domReader.setProperty(prop.getKey(), prop.getValue());
                     }
                 }
@@ -225,7 +227,8 @@ public final class PomModuleDescriptorParser implements ModuleDescriptorParser {
                             + ". Please update your dependency to directly use the right version.");
                     Message.warn("Resolution will only pick dependencies of the relocated element."
                             + "  Artifact and other metadata will be ignored.");
-                    ResolvedModuleRevision relocatedModule = parseOtherPom(ivySettings, relocation, false);
+                    ResolvedModuleRevision relocatedModule = parseOtherPom(ivySettings, relocation,
+                        false);
                     if (relocatedModule == null) {
                         throw new ParseException(
                                 "impossible to load module " + relocation + " to which "
@@ -339,7 +342,7 @@ public final class PomModuleDescriptorParser implements ModuleDescriptorParser {
             // module, so that those "managed dependency versions" are usable/applicable
             // in the current module's dependencies
             ModuleRevisionId importModRevID = ModuleRevisionId.newInstance(dep.getGroupId(),
-                    dep.getArtifactId(), dep.getVersion());
+                dep.getArtifactId(), dep.getVersion());
             ResolvedModuleRevision importModule = parseOtherPom(ivySettings, importModRevID, false);
             if (importModule == null) {
                 throw new IOException("Impossible to import module for "
@@ -352,7 +355,8 @@ public final class PomModuleDescriptorParser implements ModuleDescriptorParser {
             for (PomDependencyMgt importedDepMgt : getDependencyManagements(importDescr)) {
                 mdBuilder.addDependencyMgt(new DefaultPomDependencyMgt(importedDepMgt.getGroupId(),
                         importedDepMgt.getArtifactId(), importedDepMgt.getVersion(),
-                        importedDepMgt.getScope(), importedDepMgt.getExcludedModules()));
+                        importedDepMgt.getScope(), importedDepMgt.getClassifier(),
+                        importedDepMgt.getExcludedModules()));
             }
         } else {
             mdBuilder.addDependencyMgt(dep);
@@ -429,7 +433,8 @@ public final class PomModuleDescriptorParser implements ModuleDescriptorParser {
     }
 
     private ResolvedModuleRevision parseOtherPom(final ParserSettings ivySettings,
-            final ModuleRevisionId parentModRevID, final boolean isParentPom) throws ParseException {
+            final ModuleRevisionId parentModRevID, final boolean isParentPom)
+            throws ParseException {
 
         Set<ModuleRevisionId> previousParents = null;
         if (!isParentPom) {

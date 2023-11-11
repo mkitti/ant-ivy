@@ -47,7 +47,11 @@ public class ModuleId implements Comparable<ModuleId> {
      * @return a ModuleId instance
      */
     public static ModuleId newInstance(String org, String name) {
-        return intern(new ModuleId(org, name));
+        return newInstance(org, name, "defaultclassifier");
+    }
+
+    public static ModuleId newInstance(String org, String name, String classifier) {
+        return intern(new ModuleId(org, name, classifier));
     }
 
     /**
@@ -83,6 +87,8 @@ public class ModuleId implements Comparable<ModuleId> {
 
     private String name;
 
+    private String classifier;
+
     private int hash;
 
     private Map<String, String> attributes = new HashMap<>();
@@ -96,13 +102,23 @@ public class ModuleId implements Comparable<ModuleId> {
      *            The name of the module.
      */
     public ModuleId(String organisation, String name) {
+        this(organisation, name, "defaultclassifier");
+    }
+
+    public ModuleId(String organisation, String name, String classifier) {
         if (name == null) {
             throw new IllegalArgumentException("null name not allowed");
         }
         this.organisation = organisation;
         this.name = name;
+        if (classifier == null) {
+            this.classifier = "defaultclassifier";
+        } else {
+            this.classifier = classifier;
+        }
         attributes.put(IvyPatternHelper.ORGANISATION_KEY, organisation);
         attributes.put(IvyPatternHelper.MODULE_KEY, name);
+        attributes.put(IvyPatternHelper.CLASSIFIER_KEY, classifier);
     }
 
     /**
@@ -123,15 +139,19 @@ public class ModuleId implements Comparable<ModuleId> {
         return organisation;
     }
 
+    public String getClassifier() {
+        return classifier;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof ModuleId)) {
             return false;
         }
         ModuleId other = (ModuleId) obj;
-        return (other.organisation == null)
-                ? organisation == null && other.name.equals(name)
-                : other.organisation.equals(organisation) && other.name.equals(name);
+        return (other.organisation == null) ? organisation == null && other.name.equals(name)
+                : other.organisation.equals(organisation) && other.name.equals(name)
+                        && other.classifier.equals(classifier);
     }
 
     @Override
@@ -181,17 +201,18 @@ public class ModuleId implements Comparable<ModuleId> {
     /**
      * Returns a ModuleId
      *
-     * @param encoded String
+     * @param encoded
+     *            String
      * @return The new ModuleId.
      * @throws IllegalArgumentException
      *             If the given String could not be decoded.
      */
     public static ModuleId decode(String encoded) {
         String[] parts = encoded.split(ENCODE_SEPARATOR);
-        if (parts.length != 2) {
+        if (parts.length != 3) {
             throw new IllegalArgumentException("badly encoded module id: '" + encoded + "'");
         }
-        return new ModuleId(parts[0], parts[1]);
+        return new ModuleId(parts[0], parts[1], parts[2]);
     }
 
     /**
@@ -199,9 +220,9 @@ public class ModuleId implements Comparable<ModuleId> {
      *
      * @see #parse(String)
      */
-    public static final Pattern MID_PATTERN = Pattern.compile("("
-            + ModuleRevisionId.STRICT_CHARS_PATTERN + "*)" + "#("
-            + ModuleRevisionId.STRICT_CHARS_PATTERN + "+)");
+    public static final Pattern MID_PATTERN = Pattern
+            .compile("(" + ModuleRevisionId.STRICT_CHARS_PATTERN + "*)" + "#("
+                    + ModuleRevisionId.STRICT_CHARS_PATTERN + "+)");
 
     /**
      * Parses the module id text representation and returns it as a {@link ModuleId} instance.

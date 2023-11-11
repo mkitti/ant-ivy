@@ -20,7 +20,6 @@ package org.apache.ivy.ant;
 import java.io.File;
 
 import org.apache.ivy.TestHelper;
-
 import org.junit.Test;
 
 public class IvyConvertPomTest {
@@ -42,6 +41,15 @@ public class IvyConvertPomTest {
         // String expected = readEntirely("test-convertpom.xml").replaceAll("\r\n", "\n").replace(
         // '\r', '\n');
         // assertEquals(expected, wrote);
+    }
+
+    @Test
+    public void testN5IJ() throws Exception {
+        IvyConvertPom task = new IvyConvertPom();
+        task.setProject(TestHelper.newProject());
+        task.setPomFile(new File("/home/mkitti/src/ant-ivy/n5-ij/n5-imglib2_debug.pom.xml"));
+        task.setIvyFile(new File("/home/mkitti/src/ant-ivy/n5-ij/n5-imglib2_debug.ivy.xml"));
+        task.execute();
     }
 
     // private String readEntirely(String resource) throws IOException {

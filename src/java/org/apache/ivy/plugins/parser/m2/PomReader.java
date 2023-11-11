@@ -17,22 +17,6 @@
  */
 package org.apache.ivy.plugins.parser.m2;
 
-import org.apache.ivy.core.IvyPatternHelper;
-import org.apache.ivy.core.module.descriptor.License;
-import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.repository.Resource;
-import org.apache.ivy.util.XMLHelper;
-import org.apache.ivy.util.url.URLHandlerRegistry;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FilterInputStream;
@@ -49,6 +33,22 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import org.apache.ivy.core.IvyPatternHelper;
+import org.apache.ivy.core.module.descriptor.License;
+import org.apache.ivy.core.module.id.ModuleId;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.plugins.repository.Resource;
+import org.apache.ivy.util.XMLHelper;
+import org.apache.ivy.util.url.URLHandlerRegistry;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
  * Provides the method to read some data out of the DOM tree of a pom file.
@@ -130,7 +130,8 @@ public class PomReader {
                 public InputSource resolveEntity(String publicId, String systemId)
                         throws SAXException, IOException {
                     if (systemId != null && systemId.endsWith("m2-entities.ent")) {
-                        // IVY-921: return an InputSource for our local packaged m2-entities.ent file
+                        // IVY-921: return an InputSource for our local packaged m2-entities.ent
+                        // file
                         return new InputSource(
                                 PomReader.class.getResourceAsStream("m2-entities.ent"));
                     }
@@ -170,12 +171,13 @@ public class PomReader {
     }
 
     /**
-     * Add a property if not yet set and value is not null. This guarantees
-     * that property keeps the first value that is put on it and that the
-     * properties are never null.
+     * Add a property if not yet set and value is not null. This guarantees that property keeps the
+     * first value that is put on it and that the properties are never null.
      *
-     * @param prop String
-     * @param val  String
+     * @param prop
+     *            String
+     * @param val
+     *            String
      */
     public void setProperty(String prop, String val) {
         if (!properties.containsKey(prop) && val != null) {
@@ -332,7 +334,7 @@ public class PomReader {
 
     private List<PomDependencyMgt> getDependencyMgt(Element parent) {
         Element dependenciesElement = getFirstChildElement(
-                getFirstChildElement(parent, DEPENDENCY_MGT), DEPENDENCIES);
+            getFirstChildElement(parent, DEPENDENCY_MGT), DEPENDENCIES);
         if (dependenciesElement == null) {
             return Collections.emptyList();
         }
@@ -406,6 +408,14 @@ public class PomReader {
 
         public String getScope() {
             String val = getFirstChildText(depElement, SCOPE);
+            return replaceProps(val);
+        }
+
+        public String getClassifier() {
+            String val = getFirstChildText(depElement, CLASSIFIER);
+            if (val == null) {
+                val = "defaultclassifier";
+            }
             return replaceProps(val);
         }
 
@@ -491,6 +501,10 @@ public class PomReader {
             return null; // not used
         }
 
+        public String getClassifier() {
+            return "defaultclassifier"; // not used
+        }
+
         public List<ModuleId> getExcludedModules() {
             return Collections.emptyList(); // probably not used?
         }
@@ -529,13 +543,15 @@ public class PomReader {
         }
 
         /**
-         * We return null where certain elements within a pom don't have a value specified.
-         * For example, there are pom.xml out there which just use "<classifier/>" in the dependencies.
-         * (dependencies in org.seleniumhq.selenium:selenium-java:3.141.59 are one such example)
-         * We do this so that callers of such elements don't have to keep repeating checks for empty value.
-         * For us an empty value, for many of such elements, is really the same as that element not being specified
+         * We return null where certain elements within a pom don't have a value specified. For
+         * example, there are pom.xml out there which just use "<classifier/>" in the dependencies.
+         * (dependencies in org.seleniumhq.selenium:selenium-java:3.141.59 are one such example) We
+         * do this so that callers of such elements don't have to keep repeating checks for empty
+         * value. For us an empty value, for many of such elements, is really the same as that
+         * element not being specified
          *
-         * @param val The value to check
+         * @param val
+         *            The value to check
          * @return
          */
         private String emptyIsNull(final String val) {
@@ -587,8 +603,8 @@ public class PomReader {
         }
 
         public boolean isActive() {
-            return isActiveByDefault() || isActivatedByProperty()
-                    || isActiveByOS() || isActiveByJDK() || isActiveByFile();
+            return isActiveByDefault() || isActivatedByProperty() || isActiveByOS()
+                    || isActiveByJDK() || isActiveByFile();
         }
 
         public boolean isActiveByDefault() {
@@ -617,20 +633,24 @@ public class PomReader {
                 return false;
             }
             final String expectedOSArch = getFirstChildText(osActivation, ARCH);
-            if (expectedOSArch != null && !System.getProperty("os.arch").equals(expectedOSArch.trim())) {
+            if (expectedOSArch != null
+                    && !System.getProperty("os.arch").equals(expectedOSArch.trim())) {
                 // os arch is specified but doesn't match
                 return false;
             }
             final String expectedOSVersion = getFirstChildText(osActivation, VERSION);
-            if (expectedOSVersion != null && !System.getProperty("os.version").equals(expectedOSVersion.trim())) {
+            if (expectedOSVersion != null
+                    && !System.getProperty("os.version").equals(expectedOSVersion.trim())) {
                 // os version is specified but doesn't match
                 return false;
             }
             // reaching here implies that either no OS match rules were specified or
             // all of the OS rules that were specified were matched. So we just check to see
-            // if any rules were specified at all, in which case, we consider the profile to be activated
+            // if any rules were specified at all, in which case, we consider the profile to be
+            // activated
             // by the OS element
-            return (expectedOSName != null || expectedOSFamily != null || expectedOSArch != null || expectedOSVersion != null);
+            return (expectedOSName != null || expectedOSFamily != null || expectedOSArch != null
+                    || expectedOSVersion != null);
         }
 
         public boolean isActiveByJDK() {
@@ -643,8 +663,10 @@ public class PomReader {
                 return false;
             }
             final boolean negate = expectedJDKRange.trim().startsWith("!");
-            final String nonNegatedRange = negate ? expectedJDKRange.substring(1).trim() : expectedJDKRange.trim();
-            final boolean javaVersionInRange = MavenVersionRangeParser.currentJavaVersionInRange(nonNegatedRange);
+            final String nonNegatedRange = negate ? expectedJDKRange.substring(1).trim()
+                    : expectedJDKRange.trim();
+            final boolean javaVersionInRange = MavenVersionRangeParser
+                    .currentJavaVersionInRange(nonNegatedRange);
             return javaVersionInRange ^ negate;
         }
 
@@ -669,7 +691,8 @@ public class PomReader {
             }
             // reaching here implies that either no file match rules were specified or
             // all of the file rules that were specified were matched. So we just check to see
-            // if any rules were specified at all, in which case, we consider the profile to be activated
+            // if any rules were specified at all, in which case, we consider the profile to be
+            // activated
             // by the file element
             return (expectedMissing != null || expectedExists != null);
         }
@@ -816,8 +839,8 @@ public class PomReader {
             }
 
             int bytesToSkip = 0;
-            LineNumberReader reader = new LineNumberReader(new InputStreamReader(this.in, StandardCharsets.UTF_8),
-                    100);
+            LineNumberReader reader = new LineNumberReader(
+                    new InputStreamReader(this.in, StandardCharsets.UTF_8), 100);
             String firstLine = reader.readLine();
             if (firstLine != null) {
                 String trimmed = firstLine.trim();

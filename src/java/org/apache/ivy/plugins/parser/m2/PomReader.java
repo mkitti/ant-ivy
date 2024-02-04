@@ -47,6 +47,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
@@ -503,7 +504,6 @@ public class PomReader {
             return "defaultclassifier";
         }
 
-
         public List<ModuleId> getExcludedModules() {
             return Collections.emptyList(); // probably not used?
         }
@@ -600,8 +600,8 @@ public class PomReader {
         }
 
         public boolean isActive() {
-            return isActiveByDefault() || isActivatedByProperty()
-                    || isActiveByOS() || isActiveByJDK() || isActiveByFile();
+            return isActiveByDefault() || isActivatedByProperty() || isActiveByOS()
+                    || isActiveByJDK() || isActiveByFile();
         }
 
         public boolean isActiveByDefault() {
@@ -618,24 +618,46 @@ public class PomReader {
             if (osActivation == null) {
                 return false;
             }
-            final String actualOS = System.getProperty("os.name");
+            final String actualOS = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
             final String expectedOSName = getFirstChildText(osActivation, NAME);
-            if (expectedOSName != null && !actualOS.equals(expectedOSName.trim())) {
+            if (expectedOSName != null
+                    && !actualOS.equals(expectedOSName.toLowerCase(Locale.ENGLISH).trim())) {
                 // os name is specified but doesn't match
                 return false;
             }
+
+            // TODO: Implement full maven OS family
+            // https://github.com/apache/maven/blob/42559937d8c4ed8a361422a8db3dfa6ef81fef21/maven-model-builder/src/main/java/org/apache/maven/utils/Os.java#L150-L219
+            final String actualPathSep = System.getProperty("path.separator");
+            final String actualOSFamily;
+            if (actualOS.contains("mac") || actualOS.contains("darwin"))
+                actualOSFamily = "mac";
+            else if (actualPathSep.equals(":") && !actualOS.contains("openvms")
+                    && actualOS.endsWith("x"))
+                actualOSFamily = "unix";
+            else
+                actualOSFamily = actualOS;
+
             final String expectedOSFamily = getFirstChildText(osActivation, FAMILY);
-            if (expectedOSFamily != null && !actualOS.contains(expectedOSFamily.trim())) {
+            if (expectedOSFamily != null && !actualOSFamily
+                    .contains(expectedOSFamily.toLowerCase(Locale.ENGLISH).trim())) {
                 // os family is specified but doesn't match
                 return false;
             }
+
+            final String actualOSArch = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH);
             final String expectedOSArch = getFirstChildText(osActivation, ARCH);
-            if (expectedOSArch != null && !System.getProperty("os.arch").equals(expectedOSArch.trim())) {
+            if (expectedOSArch != null
+                    && !actualOSArch.equals(expectedOSArch.toLowerCase(Locale.ENGLISH).trim())) {
                 // os arch is specified but doesn't match
                 return false;
             }
+
+            final String actualOSversion = System.getProperty("os.version")
+                    .toLowerCase(Locale.ENGLISH);
             final String expectedOSVersion = getFirstChildText(osActivation, VERSION);
-            if (expectedOSVersion != null && !System.getProperty("os.version").equals(expectedOSVersion.trim())) {
+            if (expectedOSVersion != null && !actualOSversion
+                    .equals(expectedOSVersion.toLowerCase(Locale.ENGLISH).trim())) {
                 // os version is specified but doesn't match
                 return false;
             }

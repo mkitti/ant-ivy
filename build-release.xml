@@ -505,6 +505,7 @@
                 <exclude name="**/*.json"/>
                 <exclude name="**/*.SHA-256"/>
                 <exclude name="**/*.SHA-512"/>
+                <exclude name=".settings/**/*"/>
                 <exclude name="asciidoc/js/jquery.pack.js"/>
                 <exclude name="asciidoc/js/jquery.treeview.js"/>
             </fileset>

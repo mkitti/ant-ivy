@@ -19,7 +19,7 @@
 <ivy-module version="1.0"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"            
             xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
-    <info organisation="org.apache.ivy"
+    <info organisation="org.janelia.ivy"
            module="ivy"
            status="integration">
         <description homepage="http://ant.apache.org/ivy/">
